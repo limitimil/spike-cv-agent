@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+workspace/
+artifacts/
+preview/
+audit/
+control/
+manifest.json
+.workflow.lock
+.transaction.json
