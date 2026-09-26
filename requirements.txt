@@ -1,0 +1,4 @@
+python-docx==1.2.0
+lxml==6.0.2
+typing_extensions==4.15.0
+pywin32==311; sys_platform == 'win32'
