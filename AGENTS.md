@@ -70,3 +70,16 @@ the configured say host is authorized **without remote saving**: always pass
 `--no-save`. Follow the skill's failure handling and report unavailable audio;
 continue authorized implementation work. Never synthesize resume content unless
 separately requested. Text updates must still state the result and blockers.
+
+## Resume optimization
+
+Before planning, applying, or reviewing a resume layout, read and follow the
+canonical [`docs/RESUME_DESIGN_GUIDE.md`](docs/RESUME_DESIGN_GUIDE.md), the current
+[`docs/OPERATIONS.md`](docs/OPERATIONS.md), and feedback for the exact build under
+review. The guide owns the visual-optimization method; the operation contract owns
+the supported mechanism.
+
+Agents may choose routine design details within an authorized layout task without
+repeated approval requests. The guide does not authorize new tool code,
+unsupported document edits, content rewriting, acceptance, or publication.
+Missing capabilities still require the existing plan and explicit approval process.

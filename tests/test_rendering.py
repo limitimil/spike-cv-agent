@@ -119,12 +119,17 @@ class RendererTests(unittest.TestCase):
         modules = fake_modules()
         app = modules['win32com.client'].DispatchEx.return_value
         app.Version, app.Build = '16.0', '12345'
+        app.AutomationSecurity = 1
+        app.Options.UpdateLinksAtOpen = True
+        app.Options.SaveNormalPrompt = True
         with patch.dict('sys.modules', modules):
             result = automate('render', self.root / 'owned.json', self.root / 'in.docx', self.root / 'out.pdf')
         self.assertTrue(result['ok'])
         self.assertEqual('16.0', result['metadata']['word_version'])
         self.assertFalse(app.Visible)
-        self.assertEqual(3, app.AutomationSecurity)
+        self.assertEqual(1, app.AutomationSecurity)  # User settings restored before quit.
+        self.assertTrue(app.Options.UpdateLinksAtOpen)
+        self.assertTrue(app.Options.SaveNormalPrompt)
         self.assertTrue(app.Documents.Open.call_args.kwargs['ReadOnly'])
         document = app.Documents.Open.return_value
         self.assertEqual(17, document.ExportAsFixedFormat.call_args.kwargs['ExportFormat'])

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resume preview monitor</title>
+<style>
+body{margin:0;font:16px system-ui;background:#f2f4f5;color:#203039}header{padding:20px;background:#173d49;color:white}
+main{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:20px;padding:20px}iframe{width:100%;height:82vh;border:0;background:white}
+section{background:white;border-radius:8px;padding:18px;margin-bottom:16px}h1{font-size:22px;margin:0}h2{font-size:17px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}button{padding:8px;cursor:pointer}code{overflow-wrap:anywhere}li{margin-bottom:8px}
+@media(max-width:750px){main{display:block}iframe{height:70vh}}
+</style>
+<header><h1>Resume preview monitor</h1><div id="connection">Connecting…</div></header>
+<main><aside><section><h2>Workflow</h2><p id="phase"></p><p id="operation"></p><p id="render-error" role="status"></p><p>Viewing build: <code id="build">No preview yet</code></p><p id="generation"></p><p id="renderer"></p><button id="update" hidden>Load newer preview</button><p><a id="docx" hidden>Download checkpoint DOCX</a></p></section>
+<section><h2>Plans &amp; docs</h2><p><a href="/docs/">Browse workspace documentation</a></p></section>
+<section><h2>Design changes</h2><ul id="summary"></ul></section>
+<section><h2>Run controls</h2><p><button data-action="run">Run / resume</button> <button data-action="pause">Pause</button></p><p><button data-action="stop_after_checkpoint">Stop at checkpoint</button> <button data-action="abort">Abort</button></p><p id="control-result" role="status"></p><p>Resume clears a previous interruption request. Pause and stop save a preview before exiting.</p></section>
+<section><h2>Feedback</h2><p>Feedback must name the build shown above. Acceptance and publication remain explicit CLI actions.</p><pre id="feedback"></pre></section>
+<section><h2>Recent audit events</h2><pre id="events"></pre></section></aside>
+<iframe id="pdf" title="Immutable resume PDF preview"></iframe></main>
+<script>
+let viewed=null,latest=null;
+for(const button of document.querySelectorAll('[data-action]'))button.onclick=async()=>{button.disabled=true;try{
+const action=button.dataset.action;const response=await fetch(action==='run'?'/api/run':'/api/control',{method:'POST',headers:{'Content-Type':'application/json','X-Resume-Token':'__CONTROL_TOKEN__'},body:JSON.stringify(action==='run'?{}:{state:action})});
+if(!response.ok)throw Error('Request failed ('+response.status+'); inspect status or run doctor.');
+document.querySelector('#control-result').textContent=(await response.json()).message;}catch(error){document.querySelector('#control-result').textContent=error.message;}finally{button.disabled=false;}};
+function loadPreview(){if(!latest)return;viewed=latest;document.querySelector('#pdf').src='/'+viewed.pdf;
+document.querySelector('#build').textContent=viewed.build_id;document.querySelector('#generation').textContent='Generation '+viewed.generation;
+const renderer=viewed.provenance||{};document.querySelector('#renderer').textContent='Renderer: '+(renderer.type||renderer.engine||'Unknown')+(renderer.word_version?' · Word '+renderer.word_version:'')+(renderer.word_build?' · '+renderer.word_build:'');
+let link=document.querySelector('#docx');link.hidden=false;link.href='/'+viewed.docx;
+document.querySelector('#feedback').textContent='python resume.py feedback '+viewed.build_id+' "Your feedback"';document.querySelector('#update').hidden=true;}
+document.querySelector('#update').onclick=loadPreview;
+async function poll(){try{const r=await fetch('/preview/status.json');if(!r.ok)throw Error('Status unavailable');const s=await r.json();
+document.querySelector('#phase').textContent='Phase: '+(s.phase||'Not initialized');document.querySelector('#operation').textContent='Last operation: '+(s.last_operation||'None');
+document.querySelector('#render-error').textContent=s.render_error?s.render_error.code+': '+s.render_error.message:'';
+latest=s.preview;if(!viewed&&latest)loadPreview();document.querySelector('#update').hidden=!latest||latest.build_id===viewed?.build_id;
+const summary=document.querySelector('#summary');summary.replaceChildren();for(const item of s.summary||[]){const li=document.createElement('li');li.textContent=item;summary.append(li);}
+const logs=await(await fetch('/audit/events.jsonl')).text();document.querySelector('#events').textContent=logs.trim().split('\n').slice(-10).map(line=>{try{const e=JSON.parse(line);return e.timestamp+' '+e.operation+'\n'+(e.reason||e.message||'')}catch{return ''}}).join('\n\n');
+document.querySelector('#connection').textContent='Connected · checked '+new Date().toLocaleTimeString();}catch(e){document.querySelector('#connection').textContent='Connection unavailable: '+e.message;}finally{setTimeout(poll,2000);}}poll();
+</script></html>

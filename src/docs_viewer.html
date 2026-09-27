@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>@@title@@ · Plans &amp; docs</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#21343b;background:#f3f5f5;line-height:1.65}
+*{box-sizing:border-box}body{margin:0}a{color:#126475;text-underline-offset:3px}a:hover{color:#083943}
+a:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid #ca7417;outline-offset:3px}
+.skip{position:absolute;top:-60px;background:white;padding:8px}.skip:focus{top:4px}
+header{background:#173d49;color:white;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+header strong{font-size:20px}header a{color:#fff}header small{display:block;color:#d5e4e7}
+.layout{display:grid;grid-template-columns:270px minmax(0,860px) 210px;gap:28px;max-width:1450px;margin:0 auto;padding:28px}
+aside{min-width:0}aside h2{font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:#5b6f76}
+aside ul{list-style:none;padding:0}aside li{margin:8px 0;overflow-wrap:anywhere}aside a{font-size:14px;text-decoration:none}
+[aria-current=page]{font-weight:700;border-left:3px solid #126475;padding-left:8px}
+form label{font-size:14px;display:block;margin-bottom:6px}input[type=search]{width:100%;padding:9px;border:1px solid #acbdc1;border-radius:5px;font:inherit}
+button{padding:7px 12px;background:#173d49;color:white;border:0;border-radius:5px;margin-top:8px;cursor:pointer}
+main{min-width:0;background:white;border:1px solid #dfe6e7;border-radius:10px;padding:32px 40px;box-shadow:0 3px 16px #173d4908}
+.document{font-size:12px;color:#61777e;border-bottom:1px solid #e4eaea;padding-bottom:16px;margin-bottom:24px;overflow-wrap:anywhere}
+article{overflow-wrap:anywhere}article h1{font-size:30px;line-height:1.25;margin-top:0}article h2{font-size:22px;margin-top:32px}article h3{font-size:18px;margin-top:24px}
+article h1,article h2,article h3,article h4{scroll-margin-top:20px}article li{margin:6px 0}article blockquote{border-left:3px solid #a1bec5;margin-left:0;padding-left:20px;color:#52686f}
+article pre{padding:18px;background:#f2f5f6;border-radius:6px;overflow:auto;font-size:13px;white-space:pre}
+article code{font-family:Consolas,monospace;background:#f2f5f6;padding:2px 4px;border-radius:3px}article pre code{padding:0}
+article table{display:block;overflow-x:auto;border-collapse:collapse;font-size:14px}article th,article td{border:1px solid #d9e2e4;padding:10px 12px;text-align:left}article th{background:#eef4f5}
+article hr{border:0;border-top:1px solid #dfe6e7;margin:28px 0}.muted,.image-alt{color:#61777e}.task-list-item{list-style:none}
+.mobile-toc{display:none}summary{cursor:pointer}
+@media(max-width:1150px){.layout{grid-template-columns:230px minmax(0,1fr)}.toc{grid-column:2;grid-row:1}main{grid-column:2}.files{grid-row:1 / span 2}}
+@media(max-width:720px){header{padding:16px;align-items:start;flex-wrap:wrap}.layout{display:flex;flex-direction:column;padding:16px;gap:16px}.files ul{max-height:180px;overflow:auto}.toc{order:1}.desktop-toc{display:none}.mobile-toc{display:block}main{order:2;padding:24px 20px}article h1{font-size:26px}}
+@media print{header,aside,.skip{display:none}.layout{display:block;padding:0}main{border:0;box-shadow:none;padding:0}article pre{white-space:pre-wrap}}
+</style></head>
+<body><a class="skip" href="#document">Skip to document</a>
+<header><div><strong>Plans &amp; docs</strong><small>Resume workspace · read-only</small></div><a href="/">Resume monitor</a></header>
+<div class="layout"><aside class="files"><form action="/docs/" method="get"><label for="filter">Find a document</label><input id="filter" name="q" type="search" value="@@query@@" placeholder="Filter filenames"><button type="submit">Filter</button></form><nav aria-label="Documents"><h2>Documents</h2><ul>@@links@@</ul></nav></aside>
+<main id="document"><div class="document">@@document@@</div><article>@@article@@</article></main>
+<aside class="toc">@@toc@@</aside></div></body></html>
