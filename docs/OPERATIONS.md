@@ -12,6 +12,7 @@ implemented capabilities. Missing visual controls require a proposed extension.
 | --- | --- | --- | --- |
 | `source.inspect` | `resume.source` | `resume.source.inspection` | No parameters; JSON report of paragraph indices, styles, and sections. |
 | `content.normalize` | Workspace | New workspace revision | No parameters; replace nonbreaking spaces, preserving emphasis. |
+| `content.revise` | Workspace; current workspace inspection | New workspace revision; `resume.content.revision` | Explicit exact text replacements with checksum guards and a durable editorial change report. |
 | `layout.apply` | Workspace | New workspace revision | Complete `design` object; font, margins, spacing, pagination, explicit style mapping. |
 | `layout.inspect` | Workspace | `resume.layout.inspection` | No parameters; versioned structure report tied to the workspace checksum. DOCX, cursor, preview, and acceptance remain unchanged. |
 | `layout.compose` | Workspace; current workspace inspection | New workspace revision | `specification`; explicit block order, table linearization, semantic theme, typography, visual paragraph rules, phrase highlights, compaction, and empty-paragraph removal. |
@@ -172,11 +173,99 @@ do not replace the stored `design`, add default pipeline steps, migrate manifest
 add dependencies, or change renderer selection. Page count and visual quality
 must be verified on the resulting PDF.
 
-Current gaps: content rewriting, unsupported structural transformations, automatic
+Current gaps: automatic content rewriting, unsupported structural transformations, automatic
 page-count targets, ATS validation, and automatic visual review.
 Never bypass these through direct edits or ad hoc scripts. Use
 [PLAN_TEMPLATE.md](PLAN_TEMPLATE.md), explain the missing capability, and wait for
 the human to decide each plan. Independent authorized operations may continue.
+
+## Explicit wording revisions
+
+`content.revise` applies human-reviewed wording supplied as data; it does not
+generate wording. It is manual, works before or after layout, and never advances
+the default cursor. Use `layout.inspect`
+first and resolve its exact manifest handle. Prepare a separate UTF-8 JSON file:
+
+```json
+{
+  "specification": {
+    "schema_version": 1,
+    "expected_workspace_sha256": "<current workspace SHA-256>",
+    "expected_inspection_sha256": "<current inspection SHA-256>",
+    "edits": [
+      {
+        "block": "body/b14",
+        "old_text": "Precent",
+        "new_text": "Present",
+        "expected_matches": 1,
+        "formatting": "preserve_uniform",
+        "reason": "Correct spelling in the employment date"
+      }
+    ]
+  }
+}
+```
+
+The placeholders must be replaced with 64 lowercase hexadecimal characters.
+The paragraph ID is illustrative; use the current inspection's IDs. Every key
+shown is required and unknown keys are rejected. `edits` must be nonempty.
+`old_text` must be nonblank; `new_text` may be empty for an explicit deletion but
+must differ from the old text. Text cannot contain tabs, line breaks, control
+characters, or invalid XML characters. A positive integer `expected_matches`
+declares all exact, case-sensitive occurrences in that paragraph. All matches
+are evaluated against the input revision; overlaps, including self-overlapping
+matches, fail. There is no fuzzy match or implicit occurrence selection.
+
+```powershell
+.\resume.ps1 operate layout.inspect --reason "Locate exact wording and run formatting"
+.\resume.ps1 operate content.revise --params '@workspace/wording-review/proposed-revision.json' --reason "Apply the settled grammar and concision revision"
+.\resume.ps1 operate layout.inspect --reason "Inspect new paragraph text before keyword styling"
+```
+
+`preserve_uniform` is the only formatting policy. A replacement may cross text
+nodes and runs only when their serialized run properties are identical; it
+inherits those properties. Mixed formatting is rejected, even when it may render
+similarly. Use smaller independently valid patches or resolve formatting in a
+separately reviewed supported operation. No automatic emphasis removal occurs.
+
+Affected paragraphs must contain plain text runs, optionally including nonprinting
+cached page-break markers. Paragraph properties and numbering are retained.
+Existing tabs and breaks outside edit spans are retained exactly, including their
+XML properties and order. Their text positions change only by declared preceding
+text edits. Edits cannot cross, insert, or remove these controls.
+Word spelling/grammar `w:proofErr` markers are retained unchanged. Paired adjacent
+empty `_GoBack` bookmarks are supported when no replacement crosses their
+position; offsets shift only by declared preceding text changes. Invalid marker
+types, unpaired/nonempty/other named bookmarks, and crossing edits are rejected.
+The change report includes before/after marker and bookmark-position evidence.
+Links, other bookmarks, comments, fields, wrappers, section boundaries,
+tracked changes, drawings, and other unsupported structures in affected paragraphs
+are rejected. Interior paragraphs inside cross-paragraph bookmark/comment ranges
+or complex fields are rejected too. The existing merged/nested-table restrictions
+apply. Ordinary table cells and existing headers/footers are addressable. Unaffected
+links, bookmarks, numbering, and other content remain intact.
+
+The operation changes only declared text nodes and their XML whitespace attribute.
+Run/paragraph structure and other XML are checked for preservation; all saved
+paragraph text is checked against the exact declared diff. Unaffected DOCX package
+members retain their bytes. It stages a new DOCX and an immutable JSON report,
+then registers both through the existing journaled transaction. The report handle
+is `resume.content.revision`; it records full edits, input offsets, reasons,
+formatting policy, source identity, checksums, and preservation results. The audit
+event carries the same evidence. A failed staging attempt may leave unregistered
+artifacts, which recovery never selects. A journaled commit recovers both handles
+and deduplicates its audit event.
+
+A successful revision clears acceptance and removes the obsolete inspection
+handle. Source, older artifacts, preview, published handles, stored design, and
+cursor are preserved. The changed workspace checksum requires a fresh render;
+create a checkpoint and obtain build-specific review before publishing. This
+operation adds no renderer, dependency, automatic model, bullet-glyph change, or
+default pipeline step.
+
+For wording-first runs, use explicit `operate` and `checkpoint` commands. The
+default `run`/`resume` pipeline still follows its stored cursor and can apply the
+initial layout; do not invoke it merely to render the revised wording.
 
 ## Read-only plans and documentation
 

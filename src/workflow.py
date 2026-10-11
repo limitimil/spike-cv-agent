@@ -57,7 +57,7 @@ class Workflow:
         if name in ('layout.inspect', 'layout.compose', 'content.revise') and advance:
             raise ValueError('Composition operations are explicit; they do not advance the default cursor')
         if name in ('layout.compose', 'content.revise'):
-            if self.state.get('next_step', 0) < 3:
+            if name == 'layout.compose' and self.state.get('next_step', 0) < 3:
                 raise ValueError('Complete the existing layout step before composing')
             spec = params['specification']
             if before['sha256'] != spec['expected_workspace_sha256']:
@@ -73,9 +73,10 @@ class Workflow:
             result['source'] = copy.deepcopy(self.state['handles']['resume.source'])
             report_entry = self.store.create(
                 json.dumps(result, ensure_ascii=False, indent=2).encode('utf-8'), '.revision.json')
-            self.store.register('resume.content.revision', report_entry)
         if output is not None:
             entry = self.store.create(output, '.docx')
+            if name == 'content.revise':
+                self.store.register('resume.content.revision', report_entry)
             self.store.register(op.outputs[0], entry)
             self.state['phase'] = 'editing'
             self.state['review'] = None
