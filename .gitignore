@@ -1,6 +1,9 @@
+# Python environment and bytecode
 .venv/
 __pycache__/
 *.pyc
+
+# Pipeline state and generated artifacts (including independent workspaces)
 workspace/
 artifacts/
 preview/
@@ -9,3 +12,19 @@ control/
 manifest.json
 .workflow.lock
 .transaction.json
+
+# Local resume inputs, job descriptions, and visual reviews
+/source/
+/jd/
+/review/
+/wording-review/
+/*.pdf
+/*.docx
+
+# Proposed layout parameters; keep the required design.json versioned
+/proposed-*.json
+
+# Local credentials
+.env
+.env.*
+!.env.example
