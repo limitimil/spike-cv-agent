@@ -1,0 +1,9 @@
+{
+  "body.font": "Liberation Sans",
+  "body.size_pt": 10,
+  "section.space_before_pt": 9,
+  "experience.role_spacing_pt": 6,
+  "page.margin_inches": 0.65,
+  "pagination.widow_control": true,
+  "paragraph_styles": {}
+}
